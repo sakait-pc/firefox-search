@@ -5,7 +5,7 @@ const App = () => {
 
   return (
     <div>
-      <h1>Hello, Vite + React + TypeScript</h1>
+      <h1>Hello, Vite + Electron + React + TypeScript</h1>
       <button onClick={() => setCount(count => count + 1)}>
         count is {count}
       </button>
