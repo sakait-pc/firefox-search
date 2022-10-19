@@ -1,12 +1,22 @@
+import { join } from "path";
 import { app, Menu, BrowserWindow, globalShortcut } from "electron";
+import isDev from "electron-is-dev";
 
 let mainWindow: BrowserWindow | null = null;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({ width: 1000, height: 800 });
 
-  // Load index.html of React
-  mainWindow.loadURL("http://localhost:5173");
+  // load index.html
+  const url = isDev
+    ? "http://localhost:5173"
+    : join(__dirname, "../out/index.html");
+
+  if (isDev) {
+    mainWindow.loadURL(url);
+  } else {
+    mainWindow.loadFile(url);
+  }
 
   // 開発ツールを有効化する
   mainWindow.webContents.openDevTools();
