@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+main
+out
 
 # Editor directories and files
 .vscode/
@@ -31,7 +33,6 @@ dist-ssr
 
 # production
 build
-src/electron/*.js
 
 # misc
 .env
