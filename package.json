@@ -2,16 +2,19 @@
   "name": "firefox-search",
   "private": true,
   "version": "0.0.0",
-  "main": "src/electron/main.js",
+  "main": "main/main.js",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "dist": "vite build && tsc -p src/electron && electron-builder --win --x64",
+    "clean": "rm -rf dist main out",
     "preview": "vite preview",
     "server:vite": "vite",
     "server:electron": "tsc -p src/electron && electron .",
     "start": "run-p server:*"
   },
   "dependencies": {
+    "electron-is-dev": "^2.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -20,8 +23,30 @@
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^2.1.0",
     "electron": "^21.1.1",
+    "electron-builder": "^23.6.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^4.6.4",
     "vite": "^3.1.0"
+  },
+  "build": {
+    "appId": "com.electron.firefoxsearch",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "assets",
+      "main",
+      "out",
+      "package.json",
+      "package-lock.json"
+    ],
+    "win": {
+      "icon": "assets/icon.png",
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
