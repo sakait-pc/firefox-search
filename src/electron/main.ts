@@ -1,6 +1,45 @@
+import fs from "fs";
 import { join } from "path";
-import { app, Menu, BrowserWindow, globalShortcut } from "electron";
+import { app, Menu, BrowserWindow, globalShortcut, dialog } from "electron";
 import isDev from "electron-is-dev";
+import ffsConfig from "./ffs-config.json";
+
+interface FFSConfig {
+  PLACES_SQLITE_SRC: string | undefined;
+  PLACES_SQLITE_DEST: string | undefined;
+}
+
+const handleError = (title: string, e: unknown) => {
+  if (e instanceof Error) {
+    dialog.showErrorBox(title, e.message);
+  } else {
+    dialog.showErrorBox("Unexpected error", e as any);
+  }
+};
+
+const copySqlite = () => {
+  try {
+    const { PLACES_SQLITE_SRC: src, PLACES_SQLITE_DEST: dest } =
+      ffsConfig as FFSConfig;
+
+    if (!src || !dest) {
+      throw new Error("src or dest does not exist!");
+    }
+
+    if (fs.existsSync(dest)) {
+      const options: Electron.MessageBoxOptions = {
+        type: "info",
+        title: "起動の準備",
+        message: `${dest} が既に存在します。`,
+      };
+      dialog.showMessageBoxSync(options);
+    } else {
+      fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
+    }
+  } catch (e) {
+    handleError("Failed to copy sqlite file", e);
+  }
+};
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -46,6 +85,8 @@ app.whenReady().then(() => {
     if (isDevToolsOpen && (isFocus || isDevToolsFocus)) wc.closeDevTools();
     else if (!isDevToolsOpen && isFocus) wc.openDevTools();
   });
+  // sqliteファイルをコピーする
+  copySqlite();
 });
 
 app.on("ready", createWindow);

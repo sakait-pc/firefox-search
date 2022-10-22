@@ -40,3 +40,6 @@ build
 .env.development.local
 .env.test.local
 .env.production.local
+
+# original
+src/electron/ffs-config.json
