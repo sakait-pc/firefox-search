@@ -3,11 +3,14 @@ import { join } from "path";
 import { app, Menu, BrowserWindow, globalShortcut, dialog } from "electron";
 import isDev from "electron-is-dev";
 import ffsConfig from "./ffs-config.json";
+import sqlite3 from "sqlite3";
 
 interface FFSConfig {
   PLACES_SQLITE_SRC: string | undefined;
   PLACES_SQLITE_DEST: string | undefined;
 }
+
+let db: sqlite3.Database | null = null;
 
 const handleError = (title: string, e: unknown) => {
   if (e instanceof Error) {
@@ -36,8 +39,31 @@ const copySqlite = () => {
     } else {
       fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
     }
+    return dest;
   } catch (e) {
-    handleError("Failed to copy sqlite file", e);
+    throw e;
+  }
+};
+
+const initDB = () => {
+  try {
+    const dest = copySqlite();
+    db = new sqlite3.Database(dest);
+    db.serialize(() => {
+      if (!db) throw new Error("initDB: db is null");
+      db.each("select * from moz_bookmarks where id = 5", (_, row) => {
+        const options: Electron.MessageBoxOptions = {
+          type: "info",
+          title: "DB",
+          message: `id: ${row.id} title: ${row.title}`,
+        };
+        dialog.showMessageBoxSync(options);
+      });
+    });
+
+    db.close();
+  } catch (e) {
+    handleError("Failed to init DB", e);
   }
 };
 
@@ -85,8 +111,8 @@ app.whenReady().then(() => {
     if (isDevToolsOpen && (isFocus || isDevToolsFocus)) wc.closeDevTools();
     else if (!isDevToolsOpen && isFocus) wc.openDevTools();
   });
-  // sqliteファイルをコピーする
-  copySqlite();
+  // DBを初期化する
+  initDB();
 });
 
 app.on("ready", createWindow);
