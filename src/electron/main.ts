@@ -1,16 +1,8 @@
-import fs from "fs";
 import { join } from "path";
 import { app, Menu, BrowserWindow, globalShortcut, dialog } from "electron";
 import isDev from "electron-is-dev";
-import ffsConfig from "./ffs-config.json";
-import sqlite3 from "sqlite3";
-
-interface FFSConfig {
-  PLACES_SQLITE_SRC: string | undefined;
-  PLACES_SQLITE_DEST: string | undefined;
-}
-
-let db: sqlite3.Database | null = null;
+import { LOCAL_BASE_URL } from "./constants";
+import * as db from "./db";
 
 const handleError = (title: string, e: unknown) => {
   if (e instanceof Error) {
@@ -20,62 +12,13 @@ const handleError = (title: string, e: unknown) => {
   }
 };
 
-const copySqlite = () => {
-  try {
-    const { PLACES_SQLITE_SRC: src, PLACES_SQLITE_DEST: dest } =
-      ffsConfig as FFSConfig;
-
-    if (!src || !dest) {
-      throw new Error("src or dest does not exist!");
-    }
-
-    if (fs.existsSync(dest)) {
-      const options: Electron.MessageBoxOptions = {
-        type: "info",
-        title: "起動の準備",
-        message: `${dest} が既に存在します。`,
-      };
-      dialog.showMessageBoxSync(options);
-    } else {
-      fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
-    }
-    return dest;
-  } catch (e) {
-    throw e;
-  }
-};
-
-const initDB = () => {
-  try {
-    const dest = copySqlite();
-    db = new sqlite3.Database(dest);
-    db.serialize(() => {
-      if (!db) throw new Error("initDB: db is null");
-      db.each("select * from moz_bookmarks where id = 5", (_, row) => {
-        const options: Electron.MessageBoxOptions = {
-          type: "info",
-          title: "DB",
-          message: `id: ${row.id} title: ${row.title}`,
-        };
-        dialog.showMessageBoxSync(options);
-      });
-    });
-
-    db.close();
-  } catch (e) {
-    handleError("Failed to init DB", e);
-  }
-};
-
 let mainWindow: BrowserWindow | null = null;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({ width: 1000, height: 800 });
 
   // load index.html
-  const url = isDev
-    ? "http://localhost:5173"
-    : join(__dirname, "../out/index.html");
+  const url = isDev ? LOCAL_BASE_URL : join(__dirname, "../out/index.html");
 
   if (isDev) {
     mainWindow.loadURL(url);
@@ -93,7 +36,7 @@ const createWindow = () => {
   });
 };
 
-app.whenReady().then(() => {
+const registerGlobalShortcut = () => {
   // ショートカットキー: Ctrl + F5 アプリ(mainWindow)のリロード
   globalShortcut.register("CommandOrControl+F5", () => {
     if (mainWindow && mainWindow.isFocused()) {
@@ -111,15 +54,49 @@ app.whenReady().then(() => {
     if (isDevToolsOpen && (isFocus || isDevToolsFocus)) wc.closeDevTools();
     else if (!isDevToolsOpen && isFocus) wc.openDevTools();
   });
-  // DBを初期化する
-  initDB();
-});
+};
+
+app
+  .whenReady()
+  .then(() => {
+    registerGlobalShortcut();
+    // Check the db instance was created correctly
+    if (!db.existsDB()) {
+      throw new Error(
+        `Failed to create db instance. App will quit.\nLog: ${db.getLog()}`
+      );
+    }
+
+    const options: Electron.MessageBoxOptions = {
+      type: "info",
+      title: "DB",
+      message: db.getLog(),
+    };
+    dialog.showMessageBoxSync(options);
+
+    // TODO: remove mock api call
+    db.selectMockAsync()
+      .then(row => {
+        const options: Electron.MessageBoxOptions = {
+          type: "info",
+          title: "DB",
+          message: `id: ${row.id} title: ${row.title}`,
+        };
+        dialog.showMessageBoxSync(options);
+      })
+      .catch(e => handleError("Failed to select mock value", e));
+  })
+  .catch(e => {
+    handleError("Failed to start app.", e);
+    app.quit();
+  });
 
 app.on("ready", createWindow);
 
 app.on("will-quit", () => {
   // すべてのショートカットキーを登録解除する
   globalShortcut.unregisterAll();
+  db.close();
 });
 
 app.on("window-all-closed", () => {
