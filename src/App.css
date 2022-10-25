@@ -1,0 +1,99 @@
+/* Reset */
+html,
+body,
+div,
+span,
+h1,
+h2,
+h3,
+p,
+pre,
+a,
+img,
+i,
+ul,
+li,
+form,
+label,
+article,
+aside,
+canvas,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section,
+audio,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+  box-sizing: border-box;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1;
+}
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+/* TODO: remove styles for unused elements */
+ul {
+  list-style: none;
+}
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-width: 0;
+  border-radius: 0;
+}
+button:hover {
+  cursor: pointer;
+}
+
+.App {
+  display: flex;
+  padding: 16px;
+}
+
+/* ===== Side ===== */
+.side {
+  width: 30%;
+  min-width: 240px;
+  padding: 16px;
+  border-right: 1px solid #000;
+}
+.search {
+  display: flex;
+  margin-top: 8px;
+}
+
+/* ===== Main ===== */
+.main {
+  width: 70%;
+  padding: 16px;
+  height: calc(100vh - 64px);
+  overflow-y: scroll;
+}
+.list-item {
+  margin-top: 16px;
+}
