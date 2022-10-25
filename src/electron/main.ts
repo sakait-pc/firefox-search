@@ -1,5 +1,12 @@
 import { join } from "path";
-import { app, Menu, BrowserWindow, globalShortcut, dialog } from "electron";
+import {
+  app,
+  Menu,
+  BrowserWindow,
+  globalShortcut,
+  dialog,
+  shell,
+} from "electron";
 import isDev from "electron-is-dev";
 import { LOCAL_BASE_URL } from "./constants";
 import * as db from "./db";
@@ -28,6 +35,12 @@ const createWindow = () => {
 
   // 開発ツールを有効化する
   mainWindow.webContents.openDevTools();
+
+  // open external link with default browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
 
   Menu.setApplicationMenu(null);
 
