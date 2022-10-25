@@ -34,8 +34,21 @@ export const getLog = () => log;
 
 export const close = () => db?.close();
 
+// ===== API =====
+
+export interface ResultRow {
+  id: number;
+  type: 1 | 2;
+  parent: number;
+  title: string;
+}
+
+export interface ElectronAPI {
+  selectMock: () => Promise<ResultRow>;
+}
+
 // TODO: remove mock api
-export const selectMockAsync = (): Promise<any> => {
+export const selectMockAsync = (): Promise<ResultRow> => {
   return new Promise((resolve, reject) => {
     db?.serialize(() => {
       db.get("select * from moz_bookmarks where id = 5", (err, row) => {
