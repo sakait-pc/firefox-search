@@ -125,12 +125,11 @@ app.on("activate", () => {
   }
 });
 
-// TODO: remove mock api call
-ipcMain.handle("SELECT_MOCK", async () => {
+ipcMain.handle("SELECT_DIRECTORY", async (_, title: string) => {
   try {
-    const row = await db.selectMockAsync();
+    const row = await db.selectDirectoryAsync(title);
     return row;
   } catch (e) {
-    handleError("Failed to select mock value", e);
+    handleError("Failed to select directory", e);
   }
 });
