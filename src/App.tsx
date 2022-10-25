@@ -1,13 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ChangeEvent } from "react";
 import "./App.css";
-
-interface ResultRow {
-  id: number;
-  type: 1 | 2;
-  parent: number;
-  title: string;
-}
+import { ResultRow } from "./electron/db";
 
 // TODO: Array<<Array<ResultRow>>>
 const initialResultRows: Array<ResultRow> = [
@@ -32,9 +26,25 @@ const initialResultRows: Array<ResultRow> = [
 ];
 
 const App = () => {
+  const { selectMock } = window.electron;
+
   const [count, setCount] = useState(0);
   const [$rows, setRows] = useState<Array<ResultRow>>(initialResultRows);
   const [$searchText, setSearchText] = useState("");
+  const [$mock, setMock] = useState<ResultRow>({
+    id: 0,
+    type: 2,
+    parent: 0,
+    title: "",
+  });
+
+  useEffect(() => {
+    const fetchMockAsync = async () => {
+      const mockRow = await selectMock();
+      setMock(mockRow);
+    };
+    fetchMockAsync();
+  }, []);
 
   const onChangeSearchText = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
@@ -83,6 +93,9 @@ const App = () => {
               <span key={row.id}>{row.title} &gt; </span>
             );
           })}
+        </div>
+        <div className="list-item">
+          <span>{$mock.title}</span>
         </div>
       </main>
     </div>

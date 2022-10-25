@@ -6,10 +6,17 @@ import {
   globalShortcut,
   dialog,
   shell,
+  ipcMain,
 } from "electron";
 import isDev from "electron-is-dev";
 import { LOCAL_BASE_URL } from "./constants";
 import * as db from "./db";
+
+declare global {
+  interface Window {
+    electron: db.ElectronAPI;
+  }
+}
 
 const handleError = (title: string, e: unknown) => {
   if (e instanceof Error) {
@@ -22,7 +29,13 @@ const handleError = (title: string, e: unknown) => {
 let mainWindow: BrowserWindow | null = null;
 
 const createWindow = () => {
-  mainWindow = new BrowserWindow({ width: 1000, height: 800 });
+  mainWindow = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    webPreferences: {
+      preload: join(__dirname, "preload.js"),
+    },
+  });
 
   // load index.html
   const url = isDev ? LOCAL_BASE_URL : join(__dirname, "../out/index.html");
@@ -86,18 +99,6 @@ app
       message: db.getLog(),
     };
     dialog.showMessageBoxSync(options);
-
-    // TODO: remove mock api call
-    db.selectMockAsync()
-      .then(row => {
-        const options: Electron.MessageBoxOptions = {
-          type: "info",
-          title: "DB",
-          message: `id: ${row.id} title: ${row.title}`,
-        };
-        dialog.showMessageBoxSync(options);
-      })
-      .catch(e => handleError("Failed to select mock value", e));
   })
   .catch(e => {
     handleError("Failed to start app.", e);
@@ -121,5 +122,15 @@ app.on("window-all-closed", () => {
 app.on("activate", () => {
   if (mainWindow === null) {
     createWindow();
+  }
+});
+
+// TODO: remove mock api call
+ipcMain.handle("SELECT_MOCK", async () => {
+  try {
+    const row = await db.selectMockAsync();
+    return row;
+  } catch (e) {
+    handleError("Failed to select mock value", e);
   }
 });
