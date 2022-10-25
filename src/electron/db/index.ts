@@ -44,17 +44,22 @@ export interface ResultRow {
 }
 
 export interface ElectronAPI {
-  selectMock: () => Promise<ResultRow>;
+  selectDirectory: (title: string) => Promise<ResultRow | undefined>;
 }
 
-// TODO: remove mock api
-export const selectMockAsync = (): Promise<ResultRow> => {
+export const selectDirectoryAsync = (
+  title: string
+): Promise<ResultRow | undefined> => {
   return new Promise((resolve, reject) => {
     db?.serialize(() => {
-      db.get("select * from moz_bookmarks where id = 5", (err, row) => {
-        if (err) return reject(err);
-        resolve(row);
-      });
+      db.get(
+        "select * from moz_bookmarks where title = ?",
+        [title],
+        (err, row) => {
+          if (err) return reject(err);
+          resolve(row);
+        }
+      );
     });
   });
 };
