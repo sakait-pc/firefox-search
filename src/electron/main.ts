@@ -12,12 +12,6 @@ import isDev from "electron-is-dev";
 import { LOCAL_BASE_URL } from "./constants";
 import * as db from "./db";
 
-declare global {
-  interface Window {
-    electron: db.ElectronAPI;
-  }
-}
-
 const handleError = (title: string, e: unknown) => {
   if (e instanceof Error) {
     dialog.showErrorBox(title, e.message);
