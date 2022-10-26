@@ -1,6 +1,7 @@
 import fs from "fs";
 import sqlite3 from "sqlite3";
 import type { Database } from "sqlite3";
+import type { ResultRow } from "../entities";
 import { getSqlitePath } from "../entities";
 
 interface CreationResult {
@@ -35,16 +36,9 @@ export const getLog = () => log;
 export const close = () => db?.close();
 
 // ===== API =====
-
-export interface ResultRow {
-  id: number;
-  type: 1 | 2;
-  parent: number;
-  title: string;
-}
-
 export interface ElectronAPI {
   selectDirectory: (title: string) => Promise<ResultRow | undefined>;
+  selectParent: (parentId: number) => Promise<ResultRow | undefined>;
 }
 
 export const selectDirectoryAsync = (
@@ -55,6 +49,23 @@ export const selectDirectoryAsync = (
       db.get(
         "select * from moz_bookmarks where title = ?",
         [title],
+        (err, row) => {
+          if (err) return reject(err);
+          resolve(row);
+        }
+      );
+    });
+  });
+};
+
+export const selectParentAsync = (
+  parentId: number
+): Promise<ResultRow | undefined> => {
+  return new Promise((resolve, reject) => {
+    db?.serialize(() => {
+      db.get(
+        "select * from moz_bookmarks where id = ?",
+        parentId,
         (err, row) => {
           if (err) return reject(err);
           resolve(row);
