@@ -25,5 +25,3 @@ export interface ResultRow {
   parent: number;
   title: string;
 }
-
-export const ROOT_ID = 1;
