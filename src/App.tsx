@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 import type { ResultRow } from "./electron/entities";
-import { ROOT_ID } from "./electron/entities";
+import { ROOT_ID } from "./electron/constants";
 import "./App.css";
 
 const App = () => {

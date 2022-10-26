@@ -36,11 +36,6 @@ export const getLog = () => log;
 export const close = () => db?.close();
 
 // ===== API =====
-export interface ElectronAPI {
-  selectDirectory: (title: string) => Promise<ResultRow | undefined>;
-  selectParent: (parentId: number) => Promise<ResultRow | undefined>;
-}
-
 export const selectDirectoryAsync = (
   title: string
 ): Promise<ResultRow | undefined> => {
