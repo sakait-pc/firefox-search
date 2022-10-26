@@ -18,3 +18,12 @@ export const getSqlitePath = (): SqlitePath => {
   }
   return { src, dest };
 };
+
+export interface ResultRow {
+  id: number;
+  type: 1 | 2;
+  parent: number;
+  title: string;
+}
+
+export const ROOT_ID = 1;

@@ -78,7 +78,7 @@ button:hover {
 /* ===== Side ===== */
 .side {
   width: 30%;
-  min-width: 240px;
+  min-width: 248px;
   padding: 16px;
   border-right: 1px solid #000;
 }

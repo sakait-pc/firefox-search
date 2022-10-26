@@ -133,3 +133,12 @@ ipcMain.handle("SELECT_DIRECTORY", async (_, title: string) => {
     handleError("Failed to select directory", e);
   }
 });
+
+ipcMain.handle("SELECT_PARENT", async (_, parentId: number) => {
+  try {
+    const row = await db.selectParentAsync(parentId);
+    return row;
+  } catch (e) {
+    handleError("Failed to select parent", e);
+  }
+});
