@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { ChangeEvent } from "react";
+import type { ResultRow } from "./electron/entities";
+import { ROOT_ID } from "./electron/entities";
 import "./App.css";
-import { ResultRow } from "./electron/db";
 
 const App = () => {
-  const { selectDirectory } = window.electron;
+  const { selectDirectory, selectParent } = window.electron;
 
   const [$rows, setRows] = useState<Array<ResultRow>>([]);
   const [$searchText, setSearchText] = useState("");
@@ -20,6 +21,24 @@ const App = () => {
       setRows([row]);
     } catch (error) {
       alert(`Failed to search: ${error}`);
+    }
+  };
+
+  const validate = (row: ResultRow) => {
+    if (row.id === ROOT_ID) return false;
+    const exists = $rows.map($row => $row.id).includes(row.id);
+    if (exists) return false;
+
+    return true;
+  };
+
+  const onClickSelectParent = async (parentId: number) => {
+    try {
+      const row = await selectParent(parentId);
+      if (!row || !validate(row)) return;
+      setRows([row, ...$rows]);
+    } catch (error) {
+      alert(`Failed to search parent: ${error}`);
     }
   };
 
@@ -56,9 +75,19 @@ const App = () => {
             $rows.map((row, idx) => {
               const isLastElement = idx === $rows.length - 1;
               return isLastElement ? (
-                <span key={row.id}>{row.title}</span>
+                <button
+                  key={row.id}
+                  onClick={() => onClickSelectParent(row.parent)}
+                >
+                  {row.title}
+                </button>
               ) : (
-                <span key={row.id}>{row.title} &gt; </span>
+                <span key={row.id}>
+                  <button onClick={() => onClickSelectParent(row.parent)}>
+                    {row.title}
+                  </button>
+                  <span> &gt; </span>
+                </span>
               );
             })}
         </div>
