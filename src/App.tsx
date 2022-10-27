@@ -1,19 +1,42 @@
 import { useState } from "react";
 import type { ChangeEvent } from "react";
-import type { ResultRow } from "./electron/entities";
+import type { ResultRow, ExactType } from "./electron/entities";
+import {
+  TYPE_DIR,
+  EXACT_BOTH,
+  EXACT_DIR,
+  EXACT_BOOKMARK,
+} from "./electron/entities";
 import { ROOT_ID } from "./electron/constants";
 import "./App.css";
 
 const App = () => {
-  const { selectDirectory, selectParent } = window.electron;
+  const { selectExact, selectParent } = window.electron;
 
   const [$rows, setRows] = useState<Array<ResultRow>>([]);
   const [$searchText, setSearchText] = useState("");
+  const [$currentExactType, setCurrentExactType] =
+    useState<ExactType>(EXACT_BOTH);
 
   const onChangeSearchText = async (e: ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
     try {
-      const row = await selectDirectory(e.target.value);
+      const row = await selectExact(e.target.value, $currentExactType);
+      if (!row) {
+        setRows([]);
+        return;
+      }
+      setRows([row]);
+    } catch (error) {
+      alert(`Failed to search: ${error}`);
+    }
+  };
+
+  const onChangeExactType = async (e: ChangeEvent<HTMLInputElement>) => {
+    const exactType = e.target.value as ExactType;
+    setCurrentExactType(exactType);
+    try {
+      const row = await selectExact($searchText, exactType);
       if (!row) {
         setRows([]);
         return;
@@ -45,9 +68,45 @@ const App = () => {
   return (
     <div className="App">
       <aside className="side">
-        <header className="side-header">
-          <span>フォルダ名検索（完全一致）</span>
-        </header>
+        <div>
+          <span>完全一致検索</span>
+        </div>
+        <div className="radios-wrap">
+          <div className="radio-wrap">
+            <input
+              type="radio"
+              id="radio-exact-both"
+              name="exact"
+              value={EXACT_BOTH}
+              checked={$currentExactType === EXACT_BOTH}
+              // disabled={isDisabledRadioBtn}
+              onChange={onChangeExactType}
+            />
+            <label htmlFor="radio-exact-both">both</label>
+          </div>
+          <div className="radio-wrap">
+            <input
+              type="radio"
+              id="radio-exact-dir"
+              name="exact"
+              value={EXACT_DIR}
+              checked={$currentExactType === EXACT_DIR}
+              onChange={onChangeExactType}
+            />
+            <label htmlFor="radio-exact-dir">dir</label>
+          </div>
+          <div className="radio-wrap">
+            <input
+              type="radio"
+              id="radio-exact-bookmark"
+              name="exact"
+              value={EXACT_BOOKMARK}
+              checked={$currentExactType === EXACT_BOOKMARK}
+              onChange={onChangeExactType}
+            />
+            <label htmlFor="radio-exact-bookmark">bookmark</label>
+          </div>
+        </div>
         <div className="search">
           <input
             type="text"
@@ -78,12 +137,16 @@ const App = () => {
                 <button
                   key={row.id}
                   onClick={() => onClickSelectParent(row.parent)}
+                  className={row.type === TYPE_DIR ? "result-dir" : undefined}
                 >
                   {row.title}
                 </button>
               ) : (
                 <span key={row.id}>
-                  <button onClick={() => onClickSelectParent(row.parent)}>
+                  <button
+                    onClick={() => onClickSelectParent(row.parent)}
+                    className="result-dir"
+                  >
                     {row.title}
                   </button>
                   <span> &gt; </span>
