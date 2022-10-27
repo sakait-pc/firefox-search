@@ -9,6 +9,7 @@ import {
   ipcMain,
 } from "electron";
 import isDev from "electron-is-dev";
+import type { ExactType } from "./entities";
 import { LOCAL_BASE_URL } from "./constants";
 import * as db from "./db";
 
@@ -119,12 +120,12 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.handle("SELECT_DIRECTORY", async (_, title: string) => {
+ipcMain.handle("SELECT_EXACT", async (_, title: string, type: ExactType) => {
   try {
-    const row = await db.selectDirectoryAsync(title);
+    const row = await db.selectExactAsync(title, type);
     return row;
   } catch (e) {
-    handleError("Failed to select directory", e);
+    handleError("Failed to select with exact match", e);
   }
 });
 

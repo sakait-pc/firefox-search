@@ -19,9 +19,22 @@ export const getSqlitePath = (): SqlitePath => {
   return { src, dest };
 };
 
+export const TYPE_BOOKMARK = 1;
+export const TYPE_DIR = 2;
+type TypeBookmark = typeof TYPE_BOOKMARK;
+type TypeDir = typeof TYPE_DIR;
+type RowType = TypeBookmark | TypeDir;
 export interface ResultRow {
   id: number;
-  type: 1 | 2;
+  type: RowType;
   parent: number;
   title: string;
 }
+
+export const EXACT_BOTH = "exact-both";
+export const EXACT_DIR = "exact-dir";
+export const EXACT_BOOKMARK = "exact-bookmark";
+export type ExactType =
+  | typeof EXACT_BOTH
+  | typeof EXACT_DIR
+  | typeof EXACT_BOOKMARK;
