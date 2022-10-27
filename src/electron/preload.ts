@@ -2,10 +2,7 @@ import { ipcRenderer, contextBridge } from "electron";
 import type { ResultRow, ExactType } from "./entities";
 
 interface ElectronAPI {
-  selectExact: (
-    title: string,
-    type: ExactType
-  ) => Promise<ResultRow | undefined>;
+  selectExact: (title: string, type: ExactType) => Promise<Array<ResultRow>>;
   selectParent: (parentId: number) => Promise<ResultRow | undefined>;
 }
 
