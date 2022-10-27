@@ -122,8 +122,8 @@ app.on("activate", () => {
 
 ipcMain.handle("SELECT_EXACT", async (_, title: string, type: ExactType) => {
   try {
-    const row = await db.selectExactAsync(title, type);
-    return row;
+    const rows = await db.selectExactAsync(title, type);
+    return rows;
   } catch (e) {
     handleError("Failed to select with exact match", e);
   }

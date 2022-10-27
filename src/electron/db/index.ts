@@ -71,13 +71,13 @@ const getExactQuery = (title: string, type: ExactType) => {
 export const selectExactAsync = (
   title: string,
   type: ExactType
-): Promise<ResultRow | undefined> => {
+): Promise<Array<ResultRow>> => {
   return new Promise((resolve, reject) => {
     const { sql, params } = getExactQuery(title, type);
     db?.serialize(() => {
-      db.get(sql, params, (err, row) => {
+      db.all(sql, params, (err, rows) => {
         if (err) return reject(err);
-        resolve(row);
+        resolve(rows);
       });
     });
   });
