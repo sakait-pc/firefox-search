@@ -1,8 +1,11 @@
 import { ipcRenderer, contextBridge } from "electron";
-import type { ResultRow } from "./entities";
+import type { ResultRow, ExactType } from "./entities";
 
 interface ElectronAPI {
-  selectDirectory: (title: string) => Promise<ResultRow | undefined>;
+  selectExact: (
+    title: string,
+    type: ExactType
+  ) => Promise<ResultRow | undefined>;
   selectParent: (parentId: number) => Promise<ResultRow | undefined>;
 }
 
@@ -13,8 +16,8 @@ declare global {
 }
 
 const api: ElectronAPI = {
-  selectDirectory: (title: string) =>
-    ipcRenderer.invoke("SELECT_DIRECTORY", title),
+  selectExact: (title: string, type: ExactType) =>
+    ipcRenderer.invoke("SELECT_EXACT", title, type),
   selectParent: (parentId: number) =>
     ipcRenderer.invoke("SELECT_PARENT", parentId),
 };
