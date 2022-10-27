@@ -13,7 +13,9 @@ import "./App.css";
 const App = () => {
   const { selectExact, selectParent } = window.electron;
 
-  const [$rows, setRows] = useState<Array<ResultRow>>([]);
+  const [$searchResults, setSearchResults] = useState<Array<Array<ResultRow>>>([
+    [],
+  ]);
   const [$searchText, setSearchText] = useState("");
   const [$currentExactType, setCurrentExactType] =
     useState<ExactType>(EXACT_BOTH);
@@ -21,12 +23,12 @@ const App = () => {
   const onChangeSearchText = async (e: ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
     try {
-      const row = await selectExact(e.target.value, $currentExactType);
-      if (!row) {
-        setRows([]);
+      const rows = await selectExact(e.target.value, $currentExactType);
+      if (rows.length === 0) {
+        setSearchResults([[]]);
         return;
       }
-      setRows([row]);
+      setSearchResults(rows.map(row => [row]));
     } catch (error) {
       alert(`Failed to search: ${error}`);
     }
@@ -36,30 +38,39 @@ const App = () => {
     const exactType = e.target.value as ExactType;
     setCurrentExactType(exactType);
     try {
-      const row = await selectExact($searchText, exactType);
-      if (!row) {
-        setRows([]);
+      const rows = await selectExact($searchText, exactType);
+      if (rows.length === 0) {
+        setSearchResults([[]]);
         return;
       }
-      setRows([row]);
+      setSearchResults(rows.map(row => [row]));
     } catch (error) {
       alert(`Failed to search: ${error}`);
     }
   };
 
-  const validate = (row: ResultRow) => {
+  const validate = (row: ResultRow, rowsIdx: number) => {
     if (row.id === ROOT_ID) return false;
-    const exists = $rows.map($row => $row.id).includes(row.id);
+    const exists = $searchResults[rowsIdx]
+      .map($row => $row.id)
+      .includes(row.id);
     if (exists) return false;
 
     return true;
   };
 
-  const onClickSelectParent = async (parentId: number) => {
+  const onClickSelectParent = async (parentId: number, rowsIdx: number) => {
     try {
       const row = await selectParent(parentId);
-      if (!row || !validate(row)) return;
-      setRows([row, ...$rows]);
+      if (!row || !validate(row, rowsIdx)) return;
+      setSearchResults(
+        $searchResults.map((rows, idx) => {
+          if (idx === rowsIdx) {
+            return [row, ...rows];
+          }
+          return rows;
+        })
+      );
     } catch (error) {
       alert(`Failed to search parent: ${error}`);
     }
@@ -129,31 +140,33 @@ const App = () => {
           }{" "}
           + React + TypeScript
         </h1>
-        <div className="list-item">
-          {$rows.length !== 0 &&
-            $rows.map((row, idx) => {
-              const isLastElement = idx === $rows.length - 1;
-              return isLastElement ? (
-                <button
-                  key={row.id}
-                  onClick={() => onClickSelectParent(row.parent)}
-                  className={row.type === TYPE_DIR ? "result-dir" : undefined}
-                >
-                  {row.title}
-                </button>
-              ) : (
-                <span key={row.id}>
+        {$searchResults[0].length !== 0 &&
+          $searchResults.map((rows, rowsIdx) => (
+            <div key={rowsIdx} className="list-item">
+              {rows.map((row, idx) => {
+                const isLastElement = idx === rows.length - 1;
+                return isLastElement ? (
                   <button
-                    onClick={() => onClickSelectParent(row.parent)}
-                    className="result-dir"
+                    key={row.id}
+                    onClick={() => onClickSelectParent(row.parent, rowsIdx)}
+                    className={row.type === TYPE_DIR ? "result-dir" : undefined}
                   >
                     {row.title}
                   </button>
-                  <span> &gt; </span>
-                </span>
-              );
-            })}
-        </div>
+                ) : (
+                  <span key={row.id}>
+                    <button
+                      onClick={() => onClickSelectParent(row.parent, rowsIdx)}
+                      className="result-dir"
+                    >
+                      {row.title}
+                    </button>
+                    <span> &gt; </span>
+                  </span>
+                );
+              })}
+            </div>
+          ))}
       </main>
     </div>
   );
