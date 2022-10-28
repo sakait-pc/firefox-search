@@ -9,7 +9,7 @@ import {
   ipcMain,
 } from "electron";
 import isDev from "electron-is-dev";
-import type { ExactType } from "./entities";
+import type { MatchType, ExactType } from "./entities";
 import { LOCAL_BASE_URL } from "./constants";
 import * as db from "./db";
 
@@ -120,14 +120,17 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.handle("SELECT_EXACT", async (_, title: string, type: ExactType) => {
-  try {
-    const rows = await db.selectExactAsync(title, type);
-    return rows;
-  } catch (e) {
-    handleError("Failed to select with exact match", e);
+ipcMain.handle(
+  "SELECT",
+  async (_, title: string, match: MatchType, type: ExactType) => {
+    try {
+      const rows = await db.selectAsync(title, match, type);
+      return rows;
+    } catch (e) {
+      handleError("Failed to select", e);
+    }
   }
-});
+);
 
 ipcMain.handle("SELECT_PARENT", async (_, parentId: number) => {
   try {
