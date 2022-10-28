@@ -1,29 +1,38 @@
 import { useState } from "react";
 import type { ChangeEvent } from "react";
-import type { ResultRow, ExactType } from "./electron/entities";
+import type { ResultRow, ExactType, MatchType } from "./electron/entities";
 import {
   TYPE_DIR,
   EXACT_BOTH,
   EXACT_DIR,
   EXACT_BOOKMARK,
+  MATCH_FUZZY,
+  MATCH_EXACT,
 } from "./electron/entities";
 import { ROOT_ID } from "./electron/constants";
 import "./App.css";
 
 const App = () => {
-  const { selectExact, selectParent } = window.electron;
+  const { select, selectParent } = window.electron;
 
   const [$searchResults, setSearchResults] = useState<Array<Array<ResultRow>>>([
     [],
   ]);
   const [$searchText, setSearchText] = useState("");
+  const [$currentMatchType, setCurrentMatchType] =
+    useState<MatchType>(MATCH_FUZZY);
   const [$currentExactType, setCurrentExactType] =
     useState<ExactType>(EXACT_BOTH);
 
   const onChangeSearchText = async (e: ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
+    if (e.target.value === "") return;
     try {
-      const rows = await selectExact(e.target.value, $currentExactType);
+      const rows = await select(
+        e.target.value,
+        $currentMatchType,
+        $currentExactType
+      );
       if (rows.length === 0) {
         setSearchResults([[]]);
         return;
@@ -37,8 +46,25 @@ const App = () => {
   const onChangeExactType = async (e: ChangeEvent<HTMLInputElement>) => {
     const exactType = e.target.value as ExactType;
     setCurrentExactType(exactType);
+    if ($searchText === "") return;
     try {
-      const rows = await selectExact($searchText, exactType);
+      const rows = await select($searchText, $currentMatchType, exactType);
+      if (rows.length === 0) {
+        setSearchResults([[]]);
+        return;
+      }
+      setSearchResults(rows.map(row => [row]));
+    } catch (error) {
+      alert(`Failed to search: ${error}`);
+    }
+  };
+
+  const onChangeMatchType = async (e: ChangeEvent<HTMLInputElement>) => {
+    const matchType = e.target.value as MatchType;
+    setCurrentMatchType(matchType);
+    if ($searchText === "") return;
+    try {
+      const rows = await select($searchText, matchType, $currentExactType);
       if (rows.length === 0) {
         setSearchResults([[]]);
         return;
@@ -79,43 +105,70 @@ const App = () => {
   return (
     <div className="App">
       <aside className="side">
-        <div>
-          <span>完全一致検索</span>
+        <div className="side-section-wrap">
+          <span className="side-section-title">Match type</span>
+          <div className="radios-wrap">
+            <div className="radio-wrap">
+              <input
+                type="radio"
+                id="radio-match-fuzzy"
+                name="match"
+                value={MATCH_FUZZY}
+                checked={$currentMatchType === MATCH_FUZZY}
+                onChange={onChangeMatchType}
+              />
+              <label htmlFor="radio-match-fuzzy">fuzzy</label>
+            </div>
+            <div className="radio-wrap">
+              <input
+                type="radio"
+                id="radio-match-exact"
+                name="match"
+                value={MATCH_EXACT}
+                checked={$currentMatchType === MATCH_EXACT}
+                onChange={onChangeMatchType}
+              />
+              <label htmlFor="radio-match-exact">exact</label>
+            </div>
+          </div>
         </div>
-        <div className="radios-wrap">
-          <div className="radio-wrap">
-            <input
-              type="radio"
-              id="radio-exact-both"
-              name="exact"
-              value={EXACT_BOTH}
-              checked={$currentExactType === EXACT_BOTH}
-              // disabled={isDisabledRadioBtn}
-              onChange={onChangeExactType}
-            />
-            <label htmlFor="radio-exact-both">both</label>
-          </div>
-          <div className="radio-wrap">
-            <input
-              type="radio"
-              id="radio-exact-dir"
-              name="exact"
-              value={EXACT_DIR}
-              checked={$currentExactType === EXACT_DIR}
-              onChange={onChangeExactType}
-            />
-            <label htmlFor="radio-exact-dir">dir</label>
-          </div>
-          <div className="radio-wrap">
-            <input
-              type="radio"
-              id="radio-exact-bookmark"
-              name="exact"
-              value={EXACT_BOOKMARK}
-              checked={$currentExactType === EXACT_BOOKMARK}
-              onChange={onChangeExactType}
-            />
-            <label htmlFor="radio-exact-bookmark">bookmark</label>
+        <div className="side-section-wrap">
+          <span className="side-section-title">Target type</span>
+          <div className="radios-wrap">
+            <div className="radio-wrap">
+              <input
+                type="radio"
+                id="radio-exact-both"
+                name="exact"
+                value={EXACT_BOTH}
+                checked={$currentExactType === EXACT_BOTH}
+                // disabled={isDisabledRadioBtn}
+                onChange={onChangeExactType}
+              />
+              <label htmlFor="radio-exact-both">both</label>
+            </div>
+            <div className="radio-wrap">
+              <input
+                type="radio"
+                id="radio-exact-dir"
+                name="exact"
+                value={EXACT_DIR}
+                checked={$currentExactType === EXACT_DIR}
+                onChange={onChangeExactType}
+              />
+              <label htmlFor="radio-exact-dir">dir</label>
+            </div>
+            <div className="radio-wrap">
+              <input
+                type="radio"
+                id="radio-exact-bookmark"
+                name="exact"
+                value={EXACT_BOOKMARK}
+                checked={$currentExactType === EXACT_BOOKMARK}
+                onChange={onChangeExactType}
+              />
+              <label htmlFor="radio-exact-bookmark">bookmark</label>
+            </div>
           </div>
         </div>
         <div className="search">
