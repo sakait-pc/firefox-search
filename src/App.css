@@ -60,11 +60,6 @@ ul {
   list-style: none;
 }
 button {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  border-width: 0;
-  border-radius: 0;
   cursor: pointer;
 }
 
@@ -108,9 +103,15 @@ label {
   align-items: center;
   margin-right: 8px;
 }
-.search {
+.search-wrap {
   display: flex;
   margin-top: 8px;
+}
+.search-input {
+  width: 100%;
+}
+.search-btn {
+  margin-left: 8px;
 }
 
 /* ===== Main ===== */
@@ -119,10 +120,21 @@ label {
   padding: 16px;
   height: calc(100vh - 64px);
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 .list-item {
   margin-top: 16px;
+  line-height: 24px;
 }
 .result-dir {
   background-color: #f9f871;
+  padding: 2px 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.result-title {
+  background-color: #f0f0f0;
+  padding: 2px 4px;
+  font-size: 14px;
+  cursor: pointer;
 }
