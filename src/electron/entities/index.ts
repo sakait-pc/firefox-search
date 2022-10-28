@@ -31,13 +31,13 @@ export interface ResultRow {
   title: string;
 }
 
-export const EXACT_BOTH = "exact-both";
-export const EXACT_DIR = "exact-dir";
-export const EXACT_BOOKMARK = "exact-bookmark";
-export type ExactType =
-  | typeof EXACT_BOTH
-  | typeof EXACT_DIR
-  | typeof EXACT_BOOKMARK;
+export const TARGET_BOTH = "TARGET_BOTH";
+export const TARGET_DIR = "TARGET_DIR";
+export const TARGET_BOOKMARK = "TARGET_BOOKMARK";
+export type TargetType =
+  | typeof TARGET_BOTH
+  | typeof TARGET_DIR
+  | typeof TARGET_BOOKMARK;
 
 export const MATCH_FUZZY = "MATCH_FUZZY";
 export const MATCH_EXACT = "MATCH_EXACT";
