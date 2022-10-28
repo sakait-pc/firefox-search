@@ -85,9 +85,23 @@ label {
   padding: 16px;
   border-right: 1px solid #000;
 }
+.side-section-wrap {
+  position: relative;
+  margin-bottom: 24px;
+  padding: 16px 8px;
+  border: solid 1px #000;
+  border-radius: 8px;
+}
+.side-section-title {
+  position: absolute;
+  display: inline-block;
+  top: -12px;
+  left: 10px;
+  padding: 0px 8px;
+  background-color: #fff;
+}
 .radios-wrap {
   display: flex;
-  margin-top: 8px;
 }
 .radio-wrap {
   display: flex;
