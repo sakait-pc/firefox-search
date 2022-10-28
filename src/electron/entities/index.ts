@@ -38,3 +38,7 @@ export type ExactType =
   | typeof EXACT_BOTH
   | typeof EXACT_DIR
   | typeof EXACT_BOOKMARK;
+
+export const MATCH_FUZZY = "MATCH_FUZZY";
+export const MATCH_EXACT = "MATCH_EXACT";
+export type MatchType = typeof MATCH_FUZZY | typeof MATCH_EXACT;
