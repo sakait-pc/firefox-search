@@ -1,11 +1,11 @@
 import { useState } from "react";
 import type { ChangeEvent } from "react";
-import type { ResultRow, ExactType, MatchType } from "./electron/entities";
+import type { ResultRow, MatchType, TargetType } from "./electron/entities";
 import {
   TYPE_DIR,
-  EXACT_BOTH,
-  EXACT_DIR,
-  EXACT_BOOKMARK,
+  TARGET_BOTH,
+  TARGET_DIR,
+  TARGET_BOOKMARK,
   MATCH_FUZZY,
   MATCH_EXACT,
 } from "./electron/entities";
@@ -19,20 +19,15 @@ const App = () => {
     [],
   ]);
   const [$searchText, setSearchText] = useState("");
-  const [$currentMatchType, setCurrentMatchType] =
-    useState<MatchType>(MATCH_FUZZY);
-  const [$currentExactType, setCurrentExactType] =
-    useState<ExactType>(EXACT_BOTH);
+  const [$matchType, setMatchType] = useState<MatchType>(MATCH_FUZZY);
+  const [$targetType, setTargetType] = useState<TargetType>(TARGET_BOTH);
 
   const onChangeSearchText = async (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchText(e.target.value);
-    if (e.target.value === "") return;
+    const title = e.target.value;
+    setSearchText(title);
+    if (title === "") return;
     try {
-      const rows = await select(
-        e.target.value,
-        $currentMatchType,
-        $currentExactType
-      );
+      const rows = await select(title, $matchType, $targetType);
       if (rows.length === 0) {
         setSearchResults([[]]);
         return;
@@ -43,12 +38,12 @@ const App = () => {
     }
   };
 
-  const onChangeExactType = async (e: ChangeEvent<HTMLInputElement>) => {
-    const exactType = e.target.value as ExactType;
-    setCurrentExactType(exactType);
+  const onChangeTargetType = async (e: ChangeEvent<HTMLInputElement>) => {
+    const target = e.target.value as TargetType;
+    setTargetType(target);
     if ($searchText === "") return;
     try {
-      const rows = await select($searchText, $currentMatchType, exactType);
+      const rows = await select($searchText, $matchType, target);
       if (rows.length === 0) {
         setSearchResults([[]]);
         return;
@@ -60,11 +55,11 @@ const App = () => {
   };
 
   const onChangeMatchType = async (e: ChangeEvent<HTMLInputElement>) => {
-    const matchType = e.target.value as MatchType;
-    setCurrentMatchType(matchType);
+    const match = e.target.value as MatchType;
+    setMatchType(match);
     if ($searchText === "") return;
     try {
-      const rows = await select($searchText, matchType, $currentExactType);
+      const rows = await select($searchText, match, $targetType);
       if (rows.length === 0) {
         setSearchResults([[]]);
         return;
@@ -114,7 +109,7 @@ const App = () => {
                 id="radio-match-fuzzy"
                 name="match"
                 value={MATCH_FUZZY}
-                checked={$currentMatchType === MATCH_FUZZY}
+                checked={$matchType === MATCH_FUZZY}
                 onChange={onChangeMatchType}
               />
               <label htmlFor="radio-match-fuzzy">fuzzy</label>
@@ -125,7 +120,7 @@ const App = () => {
                 id="radio-match-exact"
                 name="match"
                 value={MATCH_EXACT}
-                checked={$currentMatchType === MATCH_EXACT}
+                checked={$matchType === MATCH_EXACT}
                 onChange={onChangeMatchType}
               />
               <label htmlFor="radio-match-exact">exact</label>
@@ -138,36 +133,36 @@ const App = () => {
             <div className="radio-wrap">
               <input
                 type="radio"
-                id="radio-exact-both"
-                name="exact"
-                value={EXACT_BOTH}
-                checked={$currentExactType === EXACT_BOTH}
+                id="radio-target-both"
+                name="target"
+                value={TARGET_BOTH}
+                checked={$targetType === TARGET_BOTH}
                 // disabled={isDisabledRadioBtn}
-                onChange={onChangeExactType}
+                onChange={onChangeTargetType}
               />
-              <label htmlFor="radio-exact-both">both</label>
+              <label htmlFor="radio-target-both">both</label>
             </div>
             <div className="radio-wrap">
               <input
                 type="radio"
-                id="radio-exact-dir"
-                name="exact"
-                value={EXACT_DIR}
-                checked={$currentExactType === EXACT_DIR}
-                onChange={onChangeExactType}
+                id="radio-target-dir"
+                name="target"
+                value={TARGET_DIR}
+                checked={$targetType === TARGET_DIR}
+                onChange={onChangeTargetType}
               />
-              <label htmlFor="radio-exact-dir">dir</label>
+              <label htmlFor="radio-target-dir">dir</label>
             </div>
             <div className="radio-wrap">
               <input
                 type="radio"
-                id="radio-exact-bookmark"
-                name="exact"
-                value={EXACT_BOOKMARK}
-                checked={$currentExactType === EXACT_BOOKMARK}
-                onChange={onChangeExactType}
+                id="radio-target-bookmark"
+                name="target"
+                value={TARGET_BOOKMARK}
+                checked={$targetType === TARGET_BOOKMARK}
+                onChange={onChangeTargetType}
               />
-              <label htmlFor="radio-exact-bookmark">bookmark</label>
+              <label htmlFor="radio-target-bookmark">bookmark</label>
             </div>
           </div>
         </div>

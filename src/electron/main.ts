@@ -9,7 +9,7 @@ import {
   ipcMain,
 } from "electron";
 import isDev from "electron-is-dev";
-import type { MatchType, ExactType } from "./entities";
+import type { MatchType, TargetType } from "./entities";
 import { LOCAL_BASE_URL } from "./constants";
 import * as db from "./db";
 
@@ -122,9 +122,9 @@ app.on("activate", () => {
 
 ipcMain.handle(
   "SELECT",
-  async (_, title: string, match: MatchType, type: ExactType) => {
+  async (_, title: string, match: MatchType, target: TargetType) => {
     try {
-      const rows = await db.selectAsync(title, match, type);
+      const rows = await db.selectAsync(title, match, target);
       return rows;
     } catch (e) {
       handleError("Failed to select", e);

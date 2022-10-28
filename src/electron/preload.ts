@@ -1,11 +1,11 @@
 import { ipcRenderer, contextBridge } from "electron";
-import type { ResultRow, MatchType, ExactType } from "./entities";
+import type { ResultRow, MatchType, TargetType } from "./entities";
 
 interface ElectronAPI {
   select: (
     title: string,
     match: MatchType,
-    type: ExactType
+    target: TargetType
   ) => Promise<Array<ResultRow>>;
   selectParent: (parentId: number) => Promise<ResultRow | undefined>;
 }
@@ -17,8 +17,8 @@ declare global {
 }
 
 const api: ElectronAPI = {
-  select: (title: string, match: MatchType, type: ExactType) =>
-    ipcRenderer.invoke("SELECT", title, match, type),
+  select: (title: string, match: MatchType, target: TargetType) =>
+    ipcRenderer.invoke("SELECT", title, match, target),
   selectParent: (parentId: number) =>
     ipcRenderer.invoke("SELECT_PARENT", parentId),
 };
