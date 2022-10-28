@@ -22,12 +22,10 @@ const App = () => {
   const [$matchType, setMatchType] = useState<MatchType>(MATCH_FUZZY);
   const [$targetType, setTargetType] = useState<TargetType>(TARGET_BOTH);
 
-  const onChangeSearchText = async (e: ChangeEvent<HTMLInputElement>) => {
-    const title = e.target.value;
-    setSearchText(title);
-    if (title === "") return;
+  const onClickSearch = async () => {
+    if ($searchText === "") return;
     try {
-      const rows = await select(title, $matchType, $targetType);
+      const rows = await select($searchText, $matchType, $targetType);
       if (rows.length === 0) {
         setSearchResults([[]]);
         return;
@@ -36,6 +34,10 @@ const App = () => {
     } catch (error) {
       alert(`Failed to search: ${error}`);
     }
+  };
+
+  const onChangeSearchText = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value);
   };
 
   const onChangeTargetType = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -166,12 +168,16 @@ const App = () => {
             </div>
           </div>
         </div>
-        <div className="search">
+        <div className="search-wrap">
           <input
             type="text"
             onChange={onChangeSearchText}
             value={$searchText}
+            className="search-input"
           />
+          <button onClick={onClickSearch} className="search-btn">
+            search
+          </button>
         </div>
       </aside>
       <main className="main">
@@ -194,21 +200,23 @@ const App = () => {
               {rows.map((row, idx) => {
                 const isLastElement = idx === rows.length - 1;
                 return isLastElement ? (
-                  <button
+                  <span
                     key={row.id}
                     onClick={() => onClickSelectParent(row.parent, rowsIdx)}
-                    className={row.type === TYPE_DIR ? "result-dir" : undefined}
+                    className={
+                      row.type === TYPE_DIR ? "result-dir" : "result-title"
+                    }
                   >
                     {row.title}
-                  </button>
+                  </span>
                 ) : (
                   <span key={row.id}>
-                    <button
+                    <span
                       onClick={() => onClickSelectParent(row.parent, rowsIdx)}
                       className="result-dir"
                     >
                       {row.title}
-                    </button>
+                    </span>
                     <span> &gt; </span>
                   </span>
                 );
