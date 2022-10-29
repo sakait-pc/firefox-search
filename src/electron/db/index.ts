@@ -44,10 +44,21 @@ export const getLog = () => log;
 export const close = () => db?.close();
 
 // ===== API =====
-const getQuery = (title: string, match: MatchType, target: TargetType) => {
-  const sql =
+const toMultipleWord = (title: string, match: MatchType) => {
+  const baseSql =
     "select id, type, parent, title from moz_bookmarks where title like ?";
-  const params = match === MATCH_EXACT ? [title] : [`%${title}%`];
+  if (match === MATCH_EXACT) return { sql: baseSql, params: [title] };
+  const titles = title
+    .trim()
+    .replace(/(\s|　)+/g, " ")
+    .split(" ");
+  const sql = titles.slice(1).reduce(sql => `${sql} and title like ?`, baseSql);
+  const params = titles.map(title => `%${title}%`);
+  return { sql, params };
+};
+
+const getQuery = (title: string, match: MatchType, target: TargetType) => {
+  const { sql, params } = toMultipleWord(title, match);
   const defaultQuery = { sql, params };
   switch (target) {
     case TARGET_BOTH:
