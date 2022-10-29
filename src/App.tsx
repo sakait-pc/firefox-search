@@ -105,67 +105,61 @@ const App = () => {
         <div className="side-section-wrap">
           <span className="side-section-title">Match type</span>
           <div className="radios-wrap">
-            <div className="radio-wrap">
+            <label className="radio-wrap">
               <input
                 type="radio"
-                id="radio-match-fuzzy"
                 name="match"
                 value={MATCH_FUZZY}
                 checked={$matchType === MATCH_FUZZY}
                 onChange={onChangeMatchType}
               />
-              <label htmlFor="radio-match-fuzzy">fuzzy</label>
-            </div>
-            <div className="radio-wrap">
+              fuzzy
+            </label>
+            <label className="radio-wrap">
               <input
                 type="radio"
-                id="radio-match-exact"
                 name="match"
                 value={MATCH_EXACT}
                 checked={$matchType === MATCH_EXACT}
                 onChange={onChangeMatchType}
               />
-              <label htmlFor="radio-match-exact">exact</label>
-            </div>
+              exact
+            </label>
           </div>
         </div>
         <div className="side-section-wrap">
           <span className="side-section-title">Target type</span>
           <div className="radios-wrap">
-            <div className="radio-wrap">
+            <label className="radio-wrap">
               <input
                 type="radio"
-                id="radio-target-both"
                 name="target"
                 value={TARGET_BOTH}
                 checked={$targetType === TARGET_BOTH}
-                // disabled={isDisabledRadioBtn}
                 onChange={onChangeTargetType}
               />
-              <label htmlFor="radio-target-both">both</label>
-            </div>
-            <div className="radio-wrap">
+              both
+            </label>
+            <label className="radio-wrap">
               <input
                 type="radio"
-                id="radio-target-dir"
                 name="target"
                 value={TARGET_DIR}
                 checked={$targetType === TARGET_DIR}
                 onChange={onChangeTargetType}
               />
-              <label htmlFor="radio-target-dir">dir</label>
-            </div>
-            <div className="radio-wrap">
+              dir
+            </label>
+            <label className="radio-wrap">
               <input
                 type="radio"
-                id="radio-target-bookmark"
                 name="target"
                 value={TARGET_BOOKMARK}
                 checked={$targetType === TARGET_BOOKMARK}
                 onChange={onChangeTargetType}
               />
-              <label htmlFor="radio-target-bookmark">bookmark</label>
-            </div>
+              bookmark
+            </label>
           </div>
         </div>
         <div className="search-wrap">
