@@ -23,9 +23,10 @@ const App = () => {
   const [$targetType, setTargetType] = useState<TargetType>(TARGET_BOTH);
 
   const onClickSearch = async () => {
-    if ($searchText === "") return;
+    const searchText = $searchText.trim();
+    if (searchText === "") return;
     try {
-      const rows = await select($searchText, $matchType, $targetType);
+      const rows = await select(searchText, $matchType, $targetType);
       if (rows.length === 0) {
         setSearchResults([[]]);
         return;
@@ -43,9 +44,10 @@ const App = () => {
   const onChangeTargetType = async (e: ChangeEvent<HTMLInputElement>) => {
     const target = e.target.value as TargetType;
     setTargetType(target);
-    if ($searchText === "") return;
+    const searchText = $searchText.trim();
+    if (searchText === "") return;
     try {
-      const rows = await select($searchText, $matchType, target);
+      const rows = await select(searchText, $matchType, target);
       if (rows.length === 0) {
         setSearchResults([[]]);
         return;
@@ -59,9 +61,10 @@ const App = () => {
   const onChangeMatchType = async (e: ChangeEvent<HTMLInputElement>) => {
     const match = e.target.value as MatchType;
     setMatchType(match);
-    if ($searchText === "") return;
+    const searchText = $searchText.trim();
+    if (searchText === "") return;
     try {
-      const rows = await select($searchText, match, $targetType);
+      const rows = await select(searchText, match, $targetType);
       if (rows.length === 0) {
         setSearchResults([[]]);
         return;
