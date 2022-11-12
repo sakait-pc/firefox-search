@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, KeyboardEvent } from "react";
 import type { ResultRow, MatchType, TargetType } from "./electron/entities";
 import {
   TYPE_DIR,
@@ -22,11 +22,11 @@ const App = () => {
   const [$matchType, setMatchType] = useState<MatchType>(MATCH_FUZZY);
   const [$targetType, setTargetType] = useState<TargetType>(TARGET_BOTH);
 
-  const onClickSearch = async () => {
+  const search = async (matchType: MatchType, targetType: TargetType) => {
     const searchText = $searchText.trim();
     if (searchText === "") return;
     try {
-      const rows = await select(searchText, $matchType, $targetType);
+      const rows = await select(searchText, matchType, targetType);
       if (rows.length === 0) {
         setSearchResults([[]]);
         return;
@@ -35,6 +35,12 @@ const App = () => {
     } catch (error) {
       alert(`Failed to search: ${error}`);
     }
+  };
+
+  const onClickSearch = () => search($matchType, $targetType);
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter") search($matchType, $targetType);
   };
 
   const onChangeSearchText = (e: ChangeEvent<HTMLInputElement>) => {
@@ -44,35 +50,13 @@ const App = () => {
   const onChangeTargetType = async (e: ChangeEvent<HTMLInputElement>) => {
     const target = e.target.value as TargetType;
     setTargetType(target);
-    const searchText = $searchText.trim();
-    if (searchText === "") return;
-    try {
-      const rows = await select(searchText, $matchType, target);
-      if (rows.length === 0) {
-        setSearchResults([[]]);
-        return;
-      }
-      setSearchResults(rows.map(row => [row]));
-    } catch (error) {
-      alert(`Failed to search: ${error}`);
-    }
+    search($matchType, target);
   };
 
   const onChangeMatchType = async (e: ChangeEvent<HTMLInputElement>) => {
     const match = e.target.value as MatchType;
     setMatchType(match);
-    const searchText = $searchText.trim();
-    if (searchText === "") return;
-    try {
-      const rows = await select(searchText, match, $targetType);
-      if (rows.length === 0) {
-        setSearchResults([[]]);
-        return;
-      }
-      setSearchResults(rows.map(row => [row]));
-    } catch (error) {
-      alert(`Failed to search: ${error}`);
-    }
+    search(match, $targetType);
   };
 
   const validate = (row: ResultRow, rowsIdx: number) => {
@@ -170,6 +154,7 @@ const App = () => {
             type="text"
             onChange={onChangeSearchText}
             value={$searchText}
+            onKeyDown={onKeyDown}
             className="search-input"
           />
           <button onClick={onClickSearch} className="search-btn">
