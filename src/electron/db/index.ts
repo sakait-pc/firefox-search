@@ -1,9 +1,7 @@
-import fs from "fs";
 import sqlite3 from "sqlite3";
 import type { Database } from "sqlite3";
 import type { ResultRow, MatchType, TargetType } from "../entities";
 import {
-  getSqlitePath,
   TARGET_BOTH,
   TARGET_DIR,
   TARGET_BOOKMARK,
@@ -51,24 +49,14 @@ export class DatabaseModule {
 
   log: string = "The DB instance was successfully created.";
 
-  constructor() {
-    this.createDB();
-  }
-
-  createDB = () => {
+  constructor(dest: string) {
     try {
-      const { src, dest } = getSqlitePath();
-      const existsDest = fs.existsSync(dest);
-      if (!existsDest) fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
       this.db = new sqlite3.Database(dest);
-      if (existsDest) {
-        this.log = `${this.log}\n${dest} already exists.`;
-      }
     } catch (e) {
       this.db = null;
       this.log = e instanceof Error ? e.message : "Unexpected error";
     }
-  };
+  }
 
   existsDB = () => !!this.db;
 
