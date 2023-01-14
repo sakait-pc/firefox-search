@@ -12,38 +12,6 @@ import {
   MATCH_EXACT,
 } from "../entities";
 
-interface CreationResult {
-  db: Database | null;
-  log: string;
-}
-
-const createDB = (): CreationResult => {
-  try {
-    const { src, dest } = getSqlitePath();
-    const existsDest = fs.existsSync(dest);
-    if (!existsDest) fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
-    const db = new sqlite3.Database(dest);
-    const baseLog = "The DB instance was successfully created.";
-    const log = existsDest ? `${baseLog}\n${dest} already exists.` : baseLog;
-    return { db, log };
-  } catch (e) {
-    if (e instanceof Error) {
-      return { db: null, log: e.message };
-    } else {
-      return { db: null, log: "Unexpected error" };
-    }
-  }
-};
-
-const { db, log } = createDB();
-
-export const existsDB = () => !!db;
-
-export const getLog = () => log;
-
-export const close = () => db?.close();
-
-// ===== API =====
 const toMultipleWord = (title: string, match: MatchType) => {
   const baseSql =
     "select id, type, parent, title from moz_bookmarks where title like ?";
@@ -78,35 +46,62 @@ const getQuery = (title: string, match: MatchType, target: TargetType) => {
   }
 };
 
-export const selectAsync = (
-  title: string,
-  match: MatchType,
-  target: TargetType
-): Promise<Array<ResultRow>> => {
-  return new Promise((resolve, reject) => {
-    const { sql, params } = getQuery(title, match, target);
-    db?.serialize(() => {
-      db.all(sql, params, (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows);
+export class DatabaseModule {
+  db: Database | null = null;
+
+  log: string = "The DB instance was successfully created.";
+
+  constructor() {
+    this.createDB();
+  }
+
+  createDB = () => {
+    try {
+      const { src, dest } = getSqlitePath();
+      const existsDest = fs.existsSync(dest);
+      if (!existsDest) fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
+      this.db = new sqlite3.Database(dest);
+      if (existsDest) {
+        this.log = `${this.log}\n${dest} already exists.`;
+      }
+    } catch (e) {
+      this.db = null;
+      this.log = e instanceof Error ? e.message : "Unexpected error";
+    }
+  };
+
+  existsDB = () => !!this.db;
+
+  close = () => this.db?.close();
+
+  selectAsync = (
+    title: string,
+    match: MatchType,
+    target: TargetType
+  ): Promise<Array<ResultRow>> => {
+    return new Promise((resolve, reject) => {
+      const { sql, params } = getQuery(title, match, target);
+      this.db?.serialize(() => {
+        this.db?.all(sql, params, (err, rows) => {
+          if (err) return reject(err);
+          resolve(rows);
+        });
       });
     });
-  });
-};
+  };
 
-export const selectParentAsync = (
-  parentId: number
-): Promise<ResultRow | undefined> => {
-  return new Promise((resolve, reject) => {
-    db?.serialize(() => {
-      db.get(
-        "select id, type, parent, title from moz_bookmarks where id = ?",
-        parentId,
-        (err, row) => {
-          if (err) return reject(err);
-          resolve(row);
-        }
-      );
+  selectParentAsync = (parentId: number): Promise<ResultRow | undefined> => {
+    return new Promise((resolve, reject) => {
+      this.db?.serialize(() => {
+        this.db?.get(
+          "select id, type, parent, title from moz_bookmarks where id = ?",
+          parentId,
+          (err, row) => {
+            if (err) return reject(err);
+            resolve(row);
+          }
+        );
+      });
     });
-  });
-};
+  };
+}
