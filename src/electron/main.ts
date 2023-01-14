@@ -1,3 +1,4 @@
+import fs from "fs";
 import { join } from "path";
 import {
   app,
@@ -9,6 +10,7 @@ import {
   ipcMain,
 } from "electron";
 import isDev from "electron-is-dev";
+import { getSqlitePath } from "./entities";
 import type { MatchType, TargetType } from "./entities";
 import { LOCAL_BASE_URL } from "./constants";
 import { DatabaseModule } from "./db";
@@ -82,19 +84,16 @@ app
   .whenReady()
   .then(() => {
     registerGlobalShortcut();
-    db = new DatabaseModule();
+    const { src, dest } = getSqlitePath();
+    if (!fs.existsSync(dest)) {
+      fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
+    }
+    db = new DatabaseModule(dest);
     if (!db.existsDB()) {
       throw new Error(
         `Failed to create db instance. App will quit.\nLog: ${db.log}`
       );
     }
-
-    const options: Electron.MessageBoxOptions = {
-      type: "info",
-      title: "DB",
-      message: db.log,
-    };
-    dialog.showMessageBoxSync(options);
   })
   .catch(e => {
     handleError("Failed to start app.", e);
