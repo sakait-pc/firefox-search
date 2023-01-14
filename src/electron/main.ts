@@ -11,7 +11,7 @@ import {
 import isDev from "electron-is-dev";
 import type { MatchType, TargetType } from "./entities";
 import { LOCAL_BASE_URL } from "./constants";
-import * as db from "./db";
+import { DatabaseModule } from "./db";
 
 const handleError = (title: string, e: unknown) => {
   if (e instanceof Error) {
@@ -22,6 +22,7 @@ const handleError = (title: string, e: unknown) => {
 };
 
 let mainWindow: BrowserWindow | null = null;
+let db: DatabaseModule | null = null;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -81,17 +82,17 @@ app
   .whenReady()
   .then(() => {
     registerGlobalShortcut();
-    // Check the db instance was created correctly
+    db = new DatabaseModule();
     if (!db.existsDB()) {
       throw new Error(
-        `Failed to create db instance. App will quit.\nLog: ${db.getLog()}`
+        `Failed to create db instance. App will quit.\nLog: ${db.log}`
       );
     }
 
     const options: Electron.MessageBoxOptions = {
       type: "info",
       title: "DB",
-      message: db.getLog(),
+      message: db.log,
     };
     dialog.showMessageBoxSync(options);
   })
@@ -105,7 +106,7 @@ app.on("ready", createWindow);
 app.on("will-quit", () => {
   // すべてのショートカットキーを登録解除する
   globalShortcut.unregisterAll();
-  db.close();
+  db?.close();
 });
 
 app.on("window-all-closed", () => {
@@ -124,7 +125,7 @@ ipcMain.handle(
   "SELECT",
   async (_, title: string, match: MatchType, target: TargetType) => {
     try {
-      const rows = await db.selectAsync(title, match, target);
+      const rows = await db?.selectAsync(title, match, target);
       return rows;
     } catch (e) {
       handleError("Failed to select", e);
@@ -134,7 +135,7 @@ ipcMain.handle(
 
 ipcMain.handle("SELECT_PARENT", async (_, parentId: number) => {
   try {
-    const row = await db.selectParentAsync(parentId);
+    const row = await db?.selectParentAsync(parentId);
     return row;
   } catch (e) {
     handleError("Failed to select parent", e);
