@@ -19,6 +19,10 @@ export const getSqlitePath = (): SqlitePath => {
   return { src, dest };
 };
 
+export type StoreType = {
+  src?: string;
+};
+
 export const TYPE_BOOKMARK = 1;
 export const TYPE_DIR = 2;
 type TypeBookmark = typeof TYPE_BOOKMARK;
