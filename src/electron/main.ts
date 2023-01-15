@@ -11,7 +11,6 @@ import {
 } from "electron";
 import isDev from "electron-is-dev";
 import ElectronStore from "electron-store";
-import { getSqlitePath } from "./entities";
 import type { MatchType, TargetType, StoreType } from "./entities";
 import { LOCAL_BASE_URL } from "./constants";
 import { DatabaseModule } from "./db";
@@ -81,30 +80,36 @@ const registerGlobalShortcut = () => {
   });
 };
 
+const initDB = () => {
+  const store = new ElectronStore<StoreType>();
+  const dest = join(app.getPath("userData"), "places.sqlite");
+  if (!fs.existsSync(dest)) {
+    if (!store.has("src")) {
+      // TODO: user specify src path with File Explorer
+      // TODO: save src path to config.json
+      // try {
+      //   store.set("src", "user specify places.sqlite path")
+      // } catch (e) {
+      // }
+    }
+
+    const src = store.get("src");
+    if (!src) throw new Error(`Invalid src. src is ${src}`);
+    fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
+  }
+  db = new DatabaseModule(dest);
+  if (!db.existsDB()) {
+    throw new Error(
+      `Failed to create db instance. App will quit.\nLog: ${db.log}`
+    );
+  }
+};
+
 app
   .whenReady()
   .then(() => {
     registerGlobalShortcut();
-    const store = new ElectronStore<StoreType>();
-    console.log("store has src: ", store.has("src")); // false
-    console.log("userData: ", app.getPath("userData")); // C:\Users\<USER_NAME>\AppData\Roaming\firefox-search
-    console.log(
-      "places.sqlite: ",
-      join(app.getPath("userData"), "places.sqlite")
-    ); // C:\Users\<USER_NAME>\AppData\Roaming\firefox-search\places.sqlite
-    // if (!store.has("src")) {
-    //   store.set("src", "user specify places.sqlite path");
-    // }
-    const { src, dest } = getSqlitePath();
-    if (!fs.existsSync(dest)) {
-      fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
-    }
-    db = new DatabaseModule(dest);
-    if (!db.existsDB()) {
-      throw new Error(
-        `Failed to create db instance. App will quit.\nLog: ${db.log}`
-      );
-    }
+    initDB();
   })
   .catch(e => {
     handleError("Failed to start app.", e);
