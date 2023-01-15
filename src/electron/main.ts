@@ -10,8 +10,9 @@ import {
   ipcMain,
 } from "electron";
 import isDev from "electron-is-dev";
+import ElectronStore from "electron-store";
 import { getSqlitePath } from "./entities";
-import type { MatchType, TargetType } from "./entities";
+import type { MatchType, TargetType, StoreType } from "./entities";
 import { LOCAL_BASE_URL } from "./constants";
 import { DatabaseModule } from "./db";
 
@@ -84,6 +85,16 @@ app
   .whenReady()
   .then(() => {
     registerGlobalShortcut();
+    const store = new ElectronStore<StoreType>();
+    console.log("store has src: ", store.has("src")); // false
+    console.log("userData: ", app.getPath("userData")); // C:\Users\<USER_NAME>\AppData\Roaming\firefox-search
+    console.log(
+      "places.sqlite: ",
+      join(app.getPath("userData"), "places.sqlite")
+    ); // C:\Users\<USER_NAME>\AppData\Roaming\firefox-search\places.sqlite
+    // if (!store.has("src")) {
+    //   store.set("src", "user specify places.sqlite path");
+    // }
     const { src, dest } = getSqlitePath();
     if (!fs.existsSync(dest)) {
       fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
