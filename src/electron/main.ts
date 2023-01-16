@@ -1,5 +1,5 @@
 import fs from "fs";
-import { join } from "path";
+import { join, basename } from "path";
 import {
   app,
   Menu,
@@ -12,7 +12,12 @@ import {
 import isDev from "electron-is-dev";
 import ElectronStore from "electron-store";
 import type { MatchType, TargetType, StoreType } from "./entities";
-import { LOCAL_BASE_URL } from "./constants";
+import {
+  LOCAL_BASE_URL,
+  PLACES_SQLITE,
+  DETAIL_PRE,
+  DETAIL_POST,
+} from "./constants";
 import { DatabaseModule } from "./db";
 
 const handleError = (title: string, e: unknown) => {
@@ -80,23 +85,48 @@ const registerGlobalShortcut = () => {
   });
 };
 
+const makeUserSelectPathToPlacesSqlite = () => {
+  const profilesPath = join(
+    app.getPath("appData"),
+    "Mozilla",
+    "Firefox",
+    "Profiles"
+  );
+  const detailPlacesPath = `${profilesPath} > [PROFILE_NAME] > ${PLACES_SQLITE}`;
+  dialog.showMessageBoxSync({
+    title: "Welcome to Firefox Search",
+    message: `Please select the path to ${PLACES_SQLITE}`,
+    detail: `${DETAIL_PRE}${detailPlacesPath}${DETAIL_POST}`,
+  });
+  const src = dialog.showOpenDialogSync({
+    title: `Select ${detailPlacesPath}`,
+    properties: ["openFile"],
+    defaultPath: profilesPath,
+    filters: [{ name: "Sqlite File", extensions: ["sqlite"] }],
+  })?.[0];
+  return src;
+};
+
 const initDB = () => {
-  const store = new ElectronStore<StoreType>();
-  const dest = join(app.getPath("userData"), "places.sqlite");
+  const dest = join(app.getPath("userData"), PLACES_SQLITE);
   if (!fs.existsSync(dest)) {
+    const store = new ElectronStore<StoreType>();
     if (!store.has("src")) {
-      // TODO: user specify src path with File Explorer
-      // TODO: save src path to config.json
-      // try {
-      //   store.set("src", "user specify places.sqlite path")
-      // } catch (e) {
-      // }
+      const src = makeUserSelectPathToPlacesSqlite();
+      if (!src || basename(src) !== PLACES_SQLITE) {
+        throw new Error(`Invalid src. src is ${src}`);
+      }
+      store.set("src", src);
     }
 
     const src = store.get("src");
-    if (!src) throw new Error(`Invalid src. src is ${src}`);
+    // Validate src because user can edit it directly in config.json.
+    if (!src || basename(src) !== PLACES_SQLITE) {
+      throw new Error(`Invalid src. src is ${src}`);
+    }
     fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
   }
+
   db = new DatabaseModule(dest);
   if (!db.existsDB()) {
     throw new Error(
