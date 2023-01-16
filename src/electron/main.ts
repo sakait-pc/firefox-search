@@ -1,4 +1,5 @@
-import { join } from "path";
+import fs from "fs";
+import { join, basename } from "path";
 import {
   app,
   Menu,
@@ -9,9 +10,15 @@ import {
   ipcMain,
 } from "electron";
 import isDev from "electron-is-dev";
-import type { MatchType, TargetType } from "./entities";
-import { LOCAL_BASE_URL } from "./constants";
-import * as db from "./db";
+import ElectronStore from "electron-store";
+import type { MatchType, TargetType, StoreType } from "./entities";
+import {
+  LOCAL_BASE_URL,
+  PLACES_SQLITE,
+  DETAIL_PRE,
+  DETAIL_POST,
+} from "./constants";
+import { DatabaseModule } from "./db";
 
 const handleError = (title: string, e: unknown) => {
   if (e instanceof Error) {
@@ -22,6 +29,7 @@ const handleError = (title: string, e: unknown) => {
 };
 
 let mainWindow: BrowserWindow | null = null;
+let db: DatabaseModule | null = null;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -77,23 +85,61 @@ const registerGlobalShortcut = () => {
   });
 };
 
+const makeUserSelectPathToPlacesSqlite = () => {
+  const profilesPath = join(
+    app.getPath("appData"),
+    "Mozilla",
+    "Firefox",
+    "Profiles"
+  );
+  const detailPlacesPath = `${profilesPath} > [PROFILE_NAME] > ${PLACES_SQLITE}`;
+  dialog.showMessageBoxSync({
+    title: "Welcome to Firefox Search",
+    message: `Please select the path to ${PLACES_SQLITE}`,
+    detail: `${DETAIL_PRE}${detailPlacesPath}${DETAIL_POST}`,
+  });
+  const src = dialog.showOpenDialogSync({
+    title: `Select ${detailPlacesPath}`,
+    properties: ["openFile"],
+    defaultPath: profilesPath,
+    filters: [{ name: "Sqlite File", extensions: ["sqlite"] }],
+  })?.[0];
+  return src;
+};
+
+const initDB = () => {
+  const dest = join(app.getPath("userData"), PLACES_SQLITE);
+  if (!fs.existsSync(dest)) {
+    const store = new ElectronStore<StoreType>();
+    if (!store.has("src")) {
+      const src = makeUserSelectPathToPlacesSqlite();
+      if (!src || basename(src) !== PLACES_SQLITE) {
+        throw new Error(`Invalid src. src is ${src}`);
+      }
+      store.set("src", src);
+    }
+
+    const src = store.get("src");
+    // Validate src because user can edit it directly in config.json.
+    if (!src || basename(src) !== PLACES_SQLITE) {
+      throw new Error(`Invalid src. src is ${src}`);
+    }
+    fs.copyFileSync(src, dest, fs.constants.COPYFILE_EXCL);
+  }
+
+  db = new DatabaseModule(dest);
+  if (!db.existsDB()) {
+    throw new Error(
+      `Failed to create db instance. App will quit.\nLog: ${db.log}`
+    );
+  }
+};
+
 app
   .whenReady()
   .then(() => {
     registerGlobalShortcut();
-    // Check the db instance was created correctly
-    if (!db.existsDB()) {
-      throw new Error(
-        `Failed to create db instance. App will quit.\nLog: ${db.getLog()}`
-      );
-    }
-
-    const options: Electron.MessageBoxOptions = {
-      type: "info",
-      title: "DB",
-      message: db.getLog(),
-    };
-    dialog.showMessageBoxSync(options);
+    initDB();
   })
   .catch(e => {
     handleError("Failed to start app.", e);
@@ -105,7 +151,7 @@ app.on("ready", createWindow);
 app.on("will-quit", () => {
   // すべてのショートカットキーを登録解除する
   globalShortcut.unregisterAll();
-  db.close();
+  db?.close();
 });
 
 app.on("window-all-closed", () => {
@@ -124,7 +170,7 @@ ipcMain.handle(
   "SELECT",
   async (_, title: string, match: MatchType, target: TargetType) => {
     try {
-      const rows = await db.selectAsync(title, match, target);
+      const rows = await db?.selectAsync(title, match, target);
       return rows;
     } catch (e) {
       handleError("Failed to select", e);
@@ -134,7 +180,7 @@ ipcMain.handle(
 
 ipcMain.handle("SELECT_PARENT", async (_, parentId: number) => {
   try {
-    const row = await db.selectParentAsync(parentId);
+    const row = await db?.selectParentAsync(parentId);
     return row;
   } catch (e) {
     handleError("Failed to select parent", e);
