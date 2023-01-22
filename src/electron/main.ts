@@ -45,12 +45,10 @@ const createWindow = () => {
 
   if (isDev) {
     mainWindow.loadURL(url);
+    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(url);
   }
-
-  // 開発ツールを有効化する
-  mainWindow.webContents.openDevTools();
 
   // open external link with default browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -66,14 +64,12 @@ const createWindow = () => {
 };
 
 const registerGlobalShortcut = () => {
-  // ショートカットキー: Ctrl + F5 アプリ(mainWindow)のリロード
   globalShortcut.register("CommandOrControl+F5", () => {
     if (mainWindow && mainWindow.isFocused()) {
       console.log("Reload main window");
       mainWindow.reload();
     }
   });
-  // 開発者ツールをtoggleする: Ctrl + F9
   globalShortcut.register("CommandOrControl+F9", () => {
     if (!mainWindow) return;
     const wc = mainWindow.webContents;
@@ -138,7 +134,9 @@ const initDB = () => {
 app
   .whenReady()
   .then(() => {
-    registerGlobalShortcut();
+    if (isDev) {
+      registerGlobalShortcut();
+    }
     initDB();
   })
   .catch(e => {
@@ -149,7 +147,6 @@ app
 app.on("ready", createWindow);
 
 app.on("will-quit", () => {
-  // すべてのショートカットキーを登録解除する
   globalShortcut.unregisterAll();
   db?.close();
 });
