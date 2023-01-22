@@ -163,19 +163,6 @@ const App = () => {
         </div>
       </aside>
       <main className="main">
-        <h1>
-          Hello, Vite +{" "}
-          {
-            <a
-              href="https://www.electronjs.org/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Electron
-            </a>
-          }{" "}
-          + React + TypeScript
-        </h1>
         {$searchResults[0].length !== 0 &&
           $searchResults.map((rows, rowsIdx) => (
             <div key={rowsIdx} className="list-item">
