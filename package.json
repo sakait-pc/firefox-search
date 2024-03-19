@@ -7,11 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "dist": "vite build && tsc -p src/electron && electron-builder --win --x64",
+    "dist-mac": "vite build && tsc -p src/electron && electron-builder --mac --arm64",
     "clean": "rm -rf dist main out",
     "preview": "vite preview",
     "server:vite": "vite",
     "server:electron": "chcp 65001 && tsc -p src/electron && electron .",
-    "start": "run-p server:*"
+    "start": "run-p server:*",
+    "server-mac:vite": "vite",
+    "server-mac:electron": "tsc -p src/electron && electron .",
+    "sm": "run-p server-mac:*"
   },
   "dependencies": {
     "electron-is-dev": "^2.0.0",
@@ -42,6 +46,12 @@
       "package.json",
       "package-lock.json"
     ],
+    "mac": {
+      "icon": "assets/icon.png",
+      "target": [
+        "dmg"
+      ]
+    },
     "win": {
       "icon": "assets/icon.png",
       "target": "nsis"
