@@ -28,6 +28,7 @@ const handleError = (title: string, e: unknown) => {
   }
 };
 
+const isMac = process.platform === 'darwin';
 let mainWindow: BrowserWindow | null = null;
 let db: DatabaseModule | null = null;
 
@@ -82,12 +83,18 @@ const registerGlobalShortcut = () => {
 };
 
 const makeUserSelectPathToPlacesSqlite = () => {
-  const profilesPath = join(
+  const pathOnWindows = join(
     app.getPath("appData"),
     "Mozilla",
     "Firefox",
     "Profiles"
   );
+  const pathOnMac = join(
+    app.getPath("appData"),
+    "Firefox",
+    "Profiles"
+  );
+  const profilesPath = isMac ? pathOnMac : pathOnWindows;
   const detailPlacesPath = `${profilesPath} > [PROFILE_NAME] > ${PLACES_SQLITE}`;
   dialog.showMessageBoxSync({
     title: "Welcome to Firefox Search",
