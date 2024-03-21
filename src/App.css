@@ -127,7 +127,8 @@ label {
 .main {
   width: 70%;
   padding: 16px;
-  height: calc(100vh - 64px);
+  /* 80px=padding+version height */
+  height: calc(100vh - 80px);
   overflow-y: scroll;
   overflow-x: hidden;
 }
