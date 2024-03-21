@@ -65,9 +65,18 @@ button {
 
 /* ===== Common ===== */
 .App {
-  display: flex;
   padding: 16px;
 }
+
+.container {
+  display: flex;
+}
+
+.version-wrap {
+  display: flex;
+  justify-content: flex-end;
+}
+
 input[type="radio"],
 label {
   cursor: pointer;
