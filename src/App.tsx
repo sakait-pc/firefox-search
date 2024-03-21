@@ -88,111 +88,116 @@ const App = () => {
 
   return (
     <div className="App">
-      <aside className="side">
-        <div className="side-section-wrap">
-          <span className="side-section-title">Match type</span>
-          <div className="radios-wrap">
-            <label className="radio-wrap">
-              <input
-                type="radio"
-                name="match"
-                value={MATCH_FUZZY}
-                checked={$matchType === MATCH_FUZZY}
-                onChange={onChangeMatchType}
-              />
-              fuzzy
-            </label>
-            <label className="radio-wrap">
-              <input
-                type="radio"
-                name="match"
-                value={MATCH_EXACT}
-                checked={$matchType === MATCH_EXACT}
-                onChange={onChangeMatchType}
-              />
-              exact
-            </label>
+      <div className="version-wrap">
+        <small>v{import.meta.env.VITE_APP_VERSION}</small>
+      </div>
+      <div className="container">
+        <aside className="side">
+          <div className="side-section-wrap">
+            <span className="side-section-title">Match type</span>
+            <div className="radios-wrap">
+              <label className="radio-wrap">
+                <input
+                  type="radio"
+                  name="match"
+                  value={MATCH_FUZZY}
+                  checked={$matchType === MATCH_FUZZY}
+                  onChange={onChangeMatchType}
+                />
+                fuzzy
+              </label>
+              <label className="radio-wrap">
+                <input
+                  type="radio"
+                  name="match"
+                  value={MATCH_EXACT}
+                  checked={$matchType === MATCH_EXACT}
+                  onChange={onChangeMatchType}
+                />
+                exact
+              </label>
+            </div>
           </div>
-        </div>
-        <div className="side-section-wrap">
-          <span className="side-section-title">Target type</span>
-          <div className="radios-wrap">
-            <label className="radio-wrap">
-              <input
-                type="radio"
-                name="target"
-                value={TARGET_BOTH}
-                checked={$targetType === TARGET_BOTH}
-                onChange={onChangeTargetType}
-              />
-              both
-            </label>
-            <label className="radio-wrap">
-              <input
-                type="radio"
-                name="target"
-                value={TARGET_DIR}
-                checked={$targetType === TARGET_DIR}
-                onChange={onChangeTargetType}
-              />
-              dir
-            </label>
-            <label className="radio-wrap">
-              <input
-                type="radio"
-                name="target"
-                value={TARGET_BOOKMARK}
-                checked={$targetType === TARGET_BOOKMARK}
-                onChange={onChangeTargetType}
-              />
-              bookmark
-            </label>
+          <div className="side-section-wrap">
+            <span className="side-section-title">Target type</span>
+            <div className="radios-wrap">
+              <label className="radio-wrap">
+                <input
+                  type="radio"
+                  name="target"
+                  value={TARGET_BOTH}
+                  checked={$targetType === TARGET_BOTH}
+                  onChange={onChangeTargetType}
+                />
+                both
+              </label>
+              <label className="radio-wrap">
+                <input
+                  type="radio"
+                  name="target"
+                  value={TARGET_DIR}
+                  checked={$targetType === TARGET_DIR}
+                  onChange={onChangeTargetType}
+                />
+                dir
+              </label>
+              <label className="radio-wrap">
+                <input
+                  type="radio"
+                  name="target"
+                  value={TARGET_BOOKMARK}
+                  checked={$targetType === TARGET_BOOKMARK}
+                  onChange={onChangeTargetType}
+                />
+                bookmark
+              </label>
+            </div>
           </div>
-        </div>
-        <div className="search-wrap">
-          <input
-            type="text"
-            onChange={onChangeSearchText}
-            value={$searchText}
-            onKeyDown={onKeyDown}
-            className="search-input"
-          />
-          <button onClick={onClickSearch} className="search-btn">
-            search
-          </button>
-        </div>
-      </aside>
-      <main className="main">
-        {$searchResults[0].length !== 0 &&
-          $searchResults.map((rows, rowsIdx) => (
-            <div key={rowsIdx} className="list-item">
-              {rows.map((row, idx) => {
-                const isLastElement = idx === rows.length - 1;
-                return isLastElement ? (
-                  <span
-                    key={row.id}
-                    onClick={() => onClickSelectParent(row.parent, rowsIdx)}
-                    className={
-                      row.type === TYPE_DIR ? "result-dir" : "result-title"
-                    }
-                  >
-                    {row.title}
-                  </span>
-                ) : (
-                  <span key={row.id}>
+          <div className="search-wrap">
+            <input
+              type="text"
+              onChange={onChangeSearchText}
+              value={$searchText}
+              onKeyDown={onKeyDown}
+              className="search-input"
+            />
+            <button onClick={onClickSearch} className="search-btn">
+              search
+            </button>
+          </div>
+        </aside>
+        <main className="main">
+          {$searchResults[0].length !== 0 &&
+            $searchResults.map((rows, rowsIdx) => (
+              <div key={rowsIdx} className="list-item">
+                {rows.map((row, idx) => {
+                  const isLastElement = idx === rows.length - 1;
+                  return isLastElement ? (
                     <span
+                      key={row.id}
                       onClick={() => onClickSelectParent(row.parent, rowsIdx)}
-                      className="result-dir"
+                      className={
+                        row.type === TYPE_DIR ? "result-dir" : "result-title"
+                      }
                     >
                       {row.title}
                     </span>
-                    <span> &gt; </span>
-                  </span>
-                );
-              })}
-            </div>
-          ))}
-      </main>
+                  ) : (
+                    <span key={row.id}>
+                      <span
+                        onClick={() => onClickSelectParent(row.parent, rowsIdx)}
+                        className="result-dir"
+                      >
+                        {row.title}
+                      </span>
+                      <span> &gt; </span>
+                    </span>
+                  );
+                })}
+              </div>
+            ))}
+        </main>
+      </div>
     </div>
   );
 };
