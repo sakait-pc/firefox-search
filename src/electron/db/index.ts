@@ -70,7 +70,7 @@ export class DatabaseModule {
     return new Promise((resolve, reject) => {
       const { sql, params } = getQuery(title, match, target);
       this.db?.serialize(() => {
-        this.db?.all(sql, params, (err, rows) => {
+        this.db?.all(sql, params, (err, rows: ResultRow[]) => {
           if (err) return reject(err);
           resolve(rows);
         });
@@ -84,7 +84,7 @@ export class DatabaseModule {
         this.db?.get(
           "select id, type, parent, title from moz_bookmarks where id = ?",
           parentId,
-          (err, row) => {
+          (err, row: ResultRow | undefined) => {
             if (err) return reject(err);
             resolve(row);
           }
